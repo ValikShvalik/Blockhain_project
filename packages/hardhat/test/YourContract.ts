@@ -1,28 +1,49 @@
-import { expect } from "chai";
-import { ethers } from "hardhat";
-import { YourContract } from "../typechain-types";
+/* import { expect } from "chai";
+import { ethers } from "hardhat";  // Используйте ethers, импортированный через Hardhat
+import { Signer } from "ethers";  // Импортируйте Signer из ethers
+import { ContractFactory, utils } from "ethers";  // Импортируйте utils отдельно
 
-describe("YourContract", function () {
-  // We define a fixture to reuse the same setup in every test.
+describe("PaymentContract", function () {
+  let contract: PaymentContract;  // Тип для контракта
+  let owner: Signer;  // Тип для владельца
+  let addr1: Signer;  // Тип для второго адреса
 
-  let yourContract: YourContract;
-  before(async () => {
-    const [owner] = await ethers.getSigners();
-    const yourContractFactory = await ethers.getContractFactory("YourContract");
-    yourContract = (await yourContractFactory.deploy(owner.address)) as YourContract;
-    await yourContract.waitForDeployment();
+  beforeEach(async function () {
+    [owner, addr1] = await ethers.getSigners();
+    
+    const PaymentContractFactory: ContractFactory = await ethers.getContractFactory("PaymentContract");
+
+    contract = (await PaymentContractFactory.deploy()) as PaymentContract;
+
+    await contract.deployed();
   });
 
-  describe("Deployment", function () {
-    it("Should have the right message on deploy", async function () {
-      expect(await yourContract.greeting()).to.equal("Building Unstoppable Apps!!!");
+  it("Should accept payments", async function () {
+    await addr1.sendTransaction({
+      to: contract.address,
+      value: utils.parseEther("1.0"),  // Используем utils отдельно
     });
 
-    it("Should allow setting a new message", async function () {
-      const newGreeting = "Learn Scaffold-ETH 2! :)";
+    const balance = await ethers.provider.getBalance(contract.address);
+    expect(balance).to.equal(utils.parseEther("1.0"));
+  });
 
-      await yourContract.setGreeting(newGreeting);
-      expect(await yourContract.greeting()).to.equal(newGreeting);
+  it("Should allow the owner to withdraw", async function () {
+    await addr1.sendTransaction({
+      to: contract.address,
+      value: utils.parseEther("1.0"),
     });
+
+    await contract.connect(owner).withdraw();
+
+    const balance = await ethers.provider.getBalance(contract.address);
+    expect(balance).to.equal(0);
+  });
+
+  it("Should not allow others to withdraw", async function () {
+    await expect(contract.connect(addr1).withdraw()).to.be.revertedWith(
+      "Only the owner can withdraw"
+    );
   });
 });
+*/
